@@ -1,6 +1,6 @@
 # shuuter
 
-[Play now!](https://tombez.github.io/shuuter)
+[Play now!](https://tombez.github.io/shuuter/)
 
 This is a port to JS from my friend Michael's game he wrote in C#.
 
