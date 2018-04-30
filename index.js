@@ -59,11 +59,11 @@ class Particle extends Vec2 {
 const width = 800; // pixels
 const height = 480; // pixels
 const playerHeight = 5 * 8;
-const playerSpeed = 4; // pixels
-const enemySpeed = 6; // pixels
+const playerSpeed = 250 / 60; // pixels
+const enemySpeed = 5; // pixels
 const bulletSize = 5; // pixels
 const fireCooldown = 500; // milliseconds
-const enemySpawnRate = 2000; // milliseconds
+const enemySpawnRate = 1667; // milliseconds
 const particleTime = 1660; // milliseconds
 const particleAmount = [10, 12];
 const particleRadius = 4; // pixels
@@ -78,7 +78,6 @@ let score = 0;
 let lastFired = 0;
 let lastSpawn = 0;
 let keysDown = new Set();
-let gameOver = false;
 let highScore = parseInt(localStorage.getItem("highScore")) || 0;
 let canvas;
 let ctx;
@@ -117,7 +116,7 @@ const loop = now => {
 	update(now, delta);
 	draw();
 	prevTime = now;
-	if (!gameOver) requestAnimationFrame(loop);
+	if (lives > 0) requestAnimationFrame(loop);
 };
 const update = (now, delta) => {
 	for (let i = 0; i < enemies.length; ++i) {
@@ -125,10 +124,6 @@ const update = (now, delta) => {
 		enemy.x -= enemySpeed * delta;
 		if (enemy.x < -enemy.w) {
 			--lives;
-			if (lives <= 0) {
-				gameOver = true;
-				return;
-			}
 			enemies.splice(i--, 1);
 		}
 	}
@@ -164,7 +159,7 @@ const update = (now, delta) => {
 	}
 
 	if (now - lastSpawn >= enemySpawnRate) {
-		lastSpawn = now;
+		lastSpawn += enemySpawnRate;
 		const x = width;
 		const y = rand(80, height - 5 * 8);
 		const enemy = new MovingTexture(x, y, 5 * 8, 5 * 8, enemyTexture);
@@ -194,13 +189,14 @@ const draw = () => {
 	ctx.fillStyle = "#000";
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-	for (const bullet of bullets) bullet.draw(ctx);
-	for (const enemy of enemies) enemy.draw(ctx);
-	for (const particle of particles) particle.draw(ctx);
 	player.draw(ctx);
+	for (const bullet of bullets) bullet.draw(ctx);
+	for (const particle of particles) particle.draw(ctx);
+	for (const enemy of enemies) enemy.draw(ctx);
 
 	ctx.font = "16px " + fontName;
 	ctx.textAlign = "left";
+	ctx.textBaseline = "hanging";
 	ctx.fillStyle = "#f00";
 	ctx.fillText("Lives: " + lives, 10, 5);
 	ctx.fillStyle = "#fff";
@@ -208,10 +204,10 @@ const draw = () => {
 	ctx.font = "32px " + fontName;
 	ctx.textAlign = "center";
 	ctx.fillText(highScore.toString(), width / 2, 10);
-	if (gameOver) {
+	if (lives <= 0) {
 		ctx.textBaseline = "middle";
 		ctx.fillStyle = "#f00";
-		ctx.fillText("Game Over", width / 2, height / 2);
+		ctx.fillText("Game Over", width / 2, height / 2 - 16);
 	}
 };
 const keydown = ({key}) => keysDown.add(key);
@@ -237,7 +233,7 @@ const init = async () => {
 	temp.fillStyle = "mediumaquamarine";
 	temp.fillRect(0, 0, playerTexture.width, playerTexture.height);
 	const y = height / 2 - playerHeight / 2;
-	player = new MovingTexture(130, y, 4 * 8, playerHeight, playerTexture);
+	player = new MovingTexture(134, y, 4 * 8, playerHeight, playerTexture);
 
 	prevTime = performance.now();
 	requestAnimationFrame(loop);
